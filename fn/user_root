@@ -1,0 +1,18 @@
+#!/bin/zsh
+#autoload
+# Root setup
+# Authors:
+#   JB
+#
+
+function user_root {
+
+    curl -fsSL -o /mnt/root/.zshrc  https://git.grml.org/f/grml-etc-core/etc/zsh/zshrc
+
+    arch-chroot /mnt chsh -s /bin/zsh
+
+    printf "$fg[red]Set Admin Password$reset_color\n\n"
+    arch-chroot /mnt passwd 2>&1
+
+}
+user_root "$@"

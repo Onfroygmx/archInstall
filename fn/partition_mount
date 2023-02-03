@@ -1,0 +1,31 @@
+#!/bin/zsh
+#autoload
+# Mount partitions during install process
+# Authors:
+#   JB
+#
+
+function partition_mount {
+
+    case $archfs in
+      "btrfs")
+        subvolume_btrfs $1
+        mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=@ $1 /mnt
+        mkdir -p /mnt/{var/cache/pacman/pkg,.snapshots}
+#        mount -o noatime,nodiratime,compress=zstd,space_cache,ssd,subvol=@home /dev/sda2 /mnt/home
+        mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=@pkg $1 /mnt/var/cache/pacman/pkg
+        mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=@snapshots $1 /mnt/.snapshots
+#        mount -o noatime,nodiratime,compress=zstd,space_cache,ssd,subvolid=5 /dev/sda2 /mnt/btrfs
+      ;;
+      *)
+        mount $1 /mnt
+      ;;
+    esac
+
+    mkdir -p /mnt/{boot,home}
+
+
+    mount /dev/sda1 /mnt/boot
+    mount /dev/sda2 /mnt/home
+}
+partition_mount "$@"

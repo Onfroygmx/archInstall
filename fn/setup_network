@@ -1,0 +1,32 @@
+#!/bin/zsh
+#autoload
+# Setup Network
+# Authors:
+#   JB
+#
+
+function setup_network {
+
+    echo "DNS=1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001" | tee -a /mnt/etc/systemd/resolved.conf
+    echo "FallbackDNS=8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844" | tee -a /mnt/etc/systemd/resolved.conf
+
+    sed -i 's/^#LLMNR/LLMNR/g' /mnt/etc/systemd/resolved.conf
+    sed -i 's/^#MulticastDNS/MulticastDNS/g' /mnt/etc/systemd/resolved.conf
+    sed -i 's/^#DNSSEC=no/DNSSEC=yes/g' /mnt/etc/systemd/resolved.conf
+    sed -i 's/^#DNSOverTLS=no/DNSOverTLS=yes/g' /mnt/etc/systemd/resolved.conf
+
+    echo $1 > /mnt/etc/hostname
+
+    echo "# The following lines are desirable for IPv4 capable hosts" | tee -a /mnt/etc/hosts
+    echo "127.0.0.1       localhost" | tee -a /mnt/etc/hosts
+    echo "# 127.0.1.1 is often used for the FQDN of the machine" | tee -a /mnt/etc/hosts
+    echo "127.0.1.1       $1.devserver.net arch" | tee -a /mnt/etc/hosts
+    echo "# The following lines are desirable for IPv6 capable hosts" | tee -a /mnt/etc/hosts
+    echo "::1             localhost ip6-localhost ip6-loopback" | tee -a /mnt/etc/hosts
+    echo "ff02::1         ip6-allnodes" | tee -a /mnt/etc/hosts
+    echo "ff02::2         ip6-allrouters" | tee -a /mnt/etc/hosts
+
+    printf "$fg[cyan]Network configuration set$reset_color\n\n"
+
+}
+setup_network "$@"

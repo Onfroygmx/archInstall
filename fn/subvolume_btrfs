@@ -1,0 +1,17 @@
+#!/bin/zsh
+#autoload
+# Create Btrfs subvolumes during install process
+# Authors:
+#   JB
+#
+
+function subvolume_btrfs {
+
+    mount $1 /mnt
+    btrfs sub create /mnt/@
+#    btrfs sub create /mnt/@home
+    btrfs sub create /mnt/@pkg
+    btrfs sub create /mnt/@snapshots
+    umount /mnt
+}
+subvolume_btrfs "$@"

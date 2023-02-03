@@ -1,0 +1,24 @@
+#!/bin/zsh
+#autoload
+# Initialize EtcKeeper Repository
+# Authors:
+#   JB
+#
+
+function setup_etckeeper {
+
+    arch-chroot /mnt  git config --global user.name "onf_root"
+    arch-chroot /mnt  git config --global user.email "onfroy@gmx.com"
+    arch-chroot /mnt  git config --global core.editor "nano -w"
+    arch-chroot /mnt  git config --global init.defaultBranch main
+    arch-chroot /mnt  git config --global color.ui true
+    arch-chroot /mnt  git config --global color.status auto
+    arch-chroot /mnt  git config --global color.branch auto
+    arch-chroot /mnt  git config --global merge.tool vimdiff
+
+    arch-chroot /mnt  etckeeper init
+    arch-chroot /mnt  etckeeper commit "Initial Commit /etc"
+
+    printf "$fg[cyan]Initialized /etc git repository with etckeeper$reset_color\n\n"
+}
+setup_etckeeper "$@"

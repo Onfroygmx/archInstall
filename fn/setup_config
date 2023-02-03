@@ -1,0 +1,93 @@
+#!/bin/zsh
+#autoload
+# Setup Env variables
+# Authors:
+#   JB
+#
+
+function setup_config {
+
+    # Global Env variables
+    echo "" | tee -a /mnt/etc/security/pam_env.conf
+    echo "XDG_CONFIG_HOME DEFAULT=@{HOME}/.config" | tee -a /mnt/etc/security/pam_env.conf
+    echo "XDG_DATA_HOME DEFAULT=@{HOME}/.data" | tee -a /mnt/etc/security/pam_env.conf
+    echo "XDG_CACHE_HOME DEFAULT=@{HOME}/.cache" | tee -a /mnt/etc/security/pam_env.conf
+    echo "XDG_STATE_HOME DEFAULT=@{HOME}/.state" | tee -a /mnt/etc/security/pam_env.conf
+
+    ### Activate defalut SSH key host to RSA
+    sed -i "s|#HostKey /etc/ssh/ssh_host_rsa_key|HostKey /etc/ssh/ssh_host_rsa_key|g" /mnt/etc/ssh/sshd_config
+
+    ### Activate persistence and max size for journalctl
+    sed -i "s/#Storage=auto/Storage=persistent/g" /mnt/etc/systemd/journald.conf
+    sed -i "s/#SystemMaxUse=/SystemMaxUse=100M/g" /mnt/etc/systemd/journald.conf
+
+    ### Set values for makepkg
+    sed -i 's/-march=x86-64 -mtune=generic/-march=native/g' /mnt/etc/makepkg.conf
+    sed -i 's/^#RUSTFLAGS="-C opt-level=2"/RUSTFLAGS="-C opt-level=2 -C target-cpu=native"/g' /mnt/etc/makepkg.conf
+    sed -i 's/^#BUILDDIR/BUILDDIR/g' /mnt/etc/makepkg.conf
+
+    # Add Shared folder to fstab
+    echo "# Shared folder virtualbox" | tee -a /mnt/etc/fstab
+    echo "Shared  /mnt/Shared  vboxsf  uid=1000,gid=1000,rw,dmode=774,fmode=664,noauto,x-systemd.automount  0  0" | tee -a /mnt/etc/fstab
+
+    # Set Default settings nanorc
+    echo "" | tee -a /etc/nanorc
+    echo "set nowrap" | tee -a /mnt/etc/nanorc
+    echo "include \"/usr/share/nano/default.nanorc\"" | tee -a /mnt/etc/nanorc
+    echo "include \"/usr/share/nano-syntax-highlighting/*.nanorc\"" | tee -a /mnt/etc/nanorc
+    sed -i 's/brightblack/brightblue/g' /mnt/usr/share/nano-syntax-highlighting/*.nanorc
+
+
+    # Allow wheel group to sudo
+    echo "## Allow members of group wheel to execute any command" | tee /mnt/etc/sudoers.d/wheel
+    echo "%wheel ALL=(ALL) ALL" | tee -a /mnt/etc/sudoers.d/wheel
+
+    printf "$fg[cyan]Environment Configuration done$reset_color\n\n"
+
+
+    case $archsys in
+      ($'oba'*)
+        #printf "$fg[cyan]Pacstrap Installation extra Obarun packages$reset_color\n\n"
+        #pacstrap /mnt - < $pck_installOba
+
+        printf "$fg[green]Setup S66 tree$reset_color\n\n"
+        # Setup boot tree
+        arch-chroot /mnt 66-tree -n boot
+        arch-chroot /mnt 66-enable -t boot boot@system
+        arch-chroot /mnt 66-env -t boot -r 'HOSTNAME=!obarun' boot@system
+        arch-chroot /mnt 66-env -t boot -r 'KEYMAP=!be-latin1' boot@system
+        arch-chroot /mnt 66-env -t boot -r 'TZ=Europe/Paris' boot@system
+        arch-chroot /mnt 66-enable -t boot -F boot@system
+
+        # Setup Net tree
+        arch-chroot /mnt 66-tree -nE net
+        arch-chroot /mnt 66-enable -t net dhcpcd
+        arch-chroot /mnt 66-enable -t net sshd
+        # Setup timedate
+        arch-chroot /mnt ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+        #arch-chroot /mnt timedatectl set-timezone Europe/Paris
+        #arch-chroot /mnt timedatectl set-ntp true
+        arch-chroot /mnt hwclock --systohc --utc
+        arch-chroot /mnt hwclock --verbose
+        #arch-chroot /mnt timedatectl status
+        arch-chroot /mnt etckeeper commit "Configure Date/Time and synchronization"
+
+        ;;
+      *)
+        ### Enable Service for startup
+        arch-chroot /mnt systemctl enable sshd 2>&1
+        arch-chroot /mnt systemctl enable systemd-networkd 2>&1
+        arch-chroot /mnt systemctl enable systemd-networkd-wait-online 2>&1
+        arch-chroot /mnt systemctl enable systemd-resolved 2>&1
+        arch-chroot /mnt systemctl enable systemd-timesyncd 2>&1
+        arch-chroot /mnt etckeeper commit "Enable services and set root PWD"
+        ;;
+    esac
+
+    printf "$fg[green]Base Configuration finished, unmount and reboot$reset_color\n\n"
+
+    arch-chroot /mnt mkinitcpio -p linux
+    cp -r $PWD /mnt/root
+
+}
+setup_config "$@"

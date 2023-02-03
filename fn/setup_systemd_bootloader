@@ -1,0 +1,45 @@
+#!/bin/zsh
+#autoload
+# Setup Bootloader
+# Authors:
+#   JB
+#
+
+function setup_systemd_bootloader {
+
+    printf "$fg[cyan]Configuring Bootloader$reset_color\n\n"
+    ## Generate all in error mode
+
+    case $archsys in
+      ($'oba'*)
+        bootctl --path=/mnt/boot install 2>&1
+      ;;
+      *)
+        arch-chroot /mnt bootctl install 2>&1
+      ;;
+    esac
+
+    echo "title ${archsys} Server" | tee /mnt/boot/loader/entries/ArchServer.conf
+    echo "linux /vmlinuz-linux" | tee -a /mnt/boot/loader/entries/ArchServer.conf
+    echo "initrd /intel-ucode.img" | tee -a /mnt/boot/loader/entries/ArchServer.conf
+    echo "initrd /initramfs-linux.img" | tee -a /mnt/boot/loader/entries/ArchServer.conf
+
+    case $archfs in
+      "btrfs")
+        echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/sda3) rootflags=subvol=@ rw" | tee -a /mnt/boot/loader/entries/ArchServer.conf
+        # options root=PARTUUID=6daac761-1a36-492b-a666-e6c49d457bd1 rootflags=subvol=@ rw
+      ;;
+      *)
+        echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/sda3) nomodeset rw" | tee -a /mnt/boot/loader/entries/ArchServer.conf
+        # options root=PARTUUID=6daac761-1a36-492b-a666-e6c49d457bd1 rw
+      ;;
+    esac
+
+    echo "default  ArchServer.conf" | tee -a /mnt/boot/loader/loader.conf
+    echo "timeout  4" | tee -a /mnt/boot/loader/loader.conf
+    echo "console-mode max" | tee -a /mnt/boot/loader/loader.conf
+    echo "editor   no" | tee -a /mnt/boot/loader/loader.conf
+
+    printf "$fg[cyan]Bootloader configured$reset_color\n\n"
+}
+setup_systemd_bootloader "@$"

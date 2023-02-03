@@ -1,0 +1,47 @@
+#!/bin/zsh
+#autoload
+# Set pacman options beforepacstrap process
+# Authors:
+#   JB
+#
+function prepare_pacman {
+
+    printf "$fg[yellow]Read Package list: $1$reset_color\n\n"
+
+    typeset -a pkg=("${(f)"$(<$pck_install)"}")
+#    typeset -a extrapkg
+
+    case $archsys in
+      ($'oba'*)
+        extrapkg+=("${(f)"$(<$pck_installOba)"}")
+        #extrapck+="sshd-66serv dhcpcd-66serv "
+        cp $current_dir/pacman.oba.conf /etc/pacman.conf
+      ;;
+      *)
+        archsys="arch"
+      ;;
+    esac
+
+    case $archfs in
+      "btrfs")
+        extrapkg+=("${(f)"$(<$pck_installBtrfs)"}")
+      ;;
+      *)
+        archfs="ext4"
+      ;;
+    esac
+
+    #while read -r line
+    #    do pck+="$line "
+    #done < $1
+
+    #printf "$fg[yellow]Extra packages to instal:\n $pck $extrapck $reset_color\n\n"
+    printf "$fg[yellow]Extra packages to instal:\n $pkg $extrapkg $reset_color\n\n"
+
+    sed -i 's/^#Color/Color/g' /etc/pacman.conf
+    #sed -i 's/^#TotalDownload/TotalDownload/g' /etc/pacman.conf
+    sed -i 's/^#VerbosePkgLists/VerbosePkgLists/g' /etc/pacman.conf
+    sed -i 's/^#ParallelDownloads/ParallelDownloads/g' /etc/pacman.conf
+
+}
+prepare_pacman "$@"

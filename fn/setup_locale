@@ -1,0 +1,31 @@
+#!/bin/zsh
+#autoload
+# Setup Locale
+# Authors:
+#   JB
+#
+
+function setup_locale {
+
+    # Define all the language locale variables
+    sed -i 's/^#en_US.UTF-8/en_US.UTF-8/g' /mnt/etc/locale.gen
+    sed -i 's/^#fr_FR.UTF-8/fr_FR.UTF-8/g' /mnt/etc/locale.gen
+
+    echo "LANG=en_US.UTF-8" | tee /mnt/etc/locale.conf
+    echo "LC_ADDRESS=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+    echo "LC_IDENTIFICATION=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+    echo "LC_MEASUREMENT=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+    echo "LC_MONETARY=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+    echo "LC_NAME=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+    echo "LC_NUMERIC=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+    echo "LC_PAPER=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+    echo "LC_TELEPHONE=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+    echo "LC_TIME=fr_FR.UTF-8" | tee -a /mnt/etc/locale.conf
+
+    # Define keyboard layout
+    echo "KEYMAP=be-latin1" | tee /mnt/etc/vconsole.conf
+
+    printf "$fg[cyan]Locale and Keyboard set to en_US.UTF-8 and fr_FR.UTF-8$reset_color\n\n"
+
+}
+setup_locale "$@"

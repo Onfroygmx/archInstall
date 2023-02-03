@@ -1,0 +1,19 @@
+#!/bin/zsh
+#autoload
+# Create partitions during install process
+# Authors:
+#   JB
+#
+
+function partition_drive {
+
+    ## Create 3 partitions and last one takes the rest (root)
+
+    sgdisk --clear \
+             --new=1:0:+512MiB --typecode=1:ef00 --change-name=1:boot \
+             --new=2:0:+1536MiB --typecode=2:8300 --change-name=2:home \
+             --new=3:0:0       --typecode=3:8300 --change-name=3:root \
+               $drive
+
+}
+partition_drive "$@"
