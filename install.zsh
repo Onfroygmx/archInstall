@@ -139,7 +139,7 @@ function install_arch {
 
     ### Configuration files for network
     cp conf/etc/systemd/network/10-* /mnt/etc/systemd/network/
-    arch-chroot /mnt chmod 644 /etc/systemd/network/10-*
+    arch-chroot /mnt chmod 644 /etc/systemd/network/20-*
 
     ### Set a welcome motd
     cp conf/etc/profile.d/archmotd.sh /mnt/etc/profile.d/
